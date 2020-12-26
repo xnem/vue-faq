@@ -15,12 +15,13 @@
                     </v-card-title>
                     <v-textarea auto-grow prepend-icon="mdi-lead-pencil" v-model="answer" autocomplete="off"/><br>
                     <v-card-actions>
-                        <v-btn block=true color="deep-orange" @click="createFAQ">Save</v-btn>
+                        <v-btn v-if="!this.$store.state.isEdit" block=true color="deep-orange" @click="createFAQ">Save</v-btn>
+                        <v-btn v-else block=true color="deep-orange" @click="updateFAQ">Save</v-btn>
                     </v-card-actions>
                 </v-card-text>
             </v-form>
         </v-card>
-        
+
         <!-- 未入力ダイアログ -->
         <BlankDialog v-if="blankDialog" message="QuestionとAnswerは入力必須です。" v-on:dialog-close="blankDialog=false"></BlankDialog>
 
@@ -54,68 +55,60 @@ export default {
     },
     methods: {
         createFAQ(){
-            if(!this.$store.state.isEdit){  // 新規作成ならこっち
-                if(this.question == "" || this.answer == "" || this.question == null || this.answer == null){
-                    this.blankDialog = true;
-                }else{
-                    /*
-                        新規データ保存のAPIを実行
-                    */
-                    console.log("question");
-                    console.log(this.question);
-                    console.log("answer");
-                    console.log(this.answer);
-                    axios.post(
-                        "/api/insert/",
-                        {
-                            question: this.question,
-                            answer: this.answer
-                        },
-                        {
-                            withCredentials: true
-                        }
-                    )
-                    .then( response => {
-                        console.log(response + "新規データ保存に成功しました。");
-                        this.$store.state.faqs = [];
-                        this.$store.state.displayNumberOfHit = false;
-                        router.push('/');
-                        }
-                    ).catch( error => {
-                        console.log(error + "新規データ保存に失敗しました。");
-                        this.errorDialog = true;
-                    });
-                }
-            }else{  // 編集ならこっち
-                if(this.question == "" || this.answer == "" || this.question == null || this.answer == null){
-                    this.blankDialog = true;
-                }else{
-                    /*
-                        データupdateのAPIを実行
-                    */
-                    axios.post(
-                        "api/update/",
-                        {
-                            qandaid: this.$store.state.faq[0],
-                            question: this.question,
-                            answer: this.answer
-                        },
-                        {
-                            withCredentials: true
-                        }
-                    ).then( response => {
-                        console.log(response + "上書き保存に成功しました。");
-                        this.$store.state.isEdit = false;
-                        this.$store.state.faq = [];
-                        this.$store.state.faqs = [];
-                        this.$store.state.displayNumberOfHit = false;
-                        router.push('/');
+            if(this.question == "" || this.answer == "" || this.question == null || this.answer == null){
+                this.blankDialog = true;
+            }else{
+                /*
+                    新規データ保存のAPIを実行
+                */
+                axios.post(
+                    "/api/insert/",
+                    {
+                        question: this.question,
+                        answer: this.answer
+                    },
+                    {
+                        withCredentials: true
                     }
-                    ).catch( error => {
-                        console.log(error + "上書き保存に失敗しました。");
-                        this.errorDialog = true;
-                    })
-                }
+                ).then( response => {
+                    console.log(response + "新規データ保存に成功しました。");
+                    this.$store.state.faqs = [];
+                    this.$store.state.displayNumberOfHit = false;
+                    router.push('/');
+                }).catch( error => {
+                    console.log(error + "新規データ保存に失敗しました。");
+                    this.errorDialog = true;
+                });
+            }
+        },
+        updateFAQ(){
+            if(this.question == "" || this.answer == "" || this.question == null || this.answer == null){
+                this.blankDialog = true;
+            }else{
+                /*
+                    データupdateのAPIを実行
+                */
+                axios.post(
+                    "api/update/",
+                    {
+                        qandaid: this.$store.state.faq[0],
+                        question: this.question,
+                        answer: this.answer
+                    },
+                    {
+                        withCredentials: true
+                    }
+                ).then( response => {
+                    console.log(response + "上書き保存に成功しました。");
+                    this.$store.state.isEdit = false;
+                    this.$store.state.faq = [];
+                    this.$store.state.faqs = [];
+                    this.$store.state.displayNumberOfHit = false;
+                    router.push('/');
+                }).catch( error => {
+                    console.log(error + "上書き保存に失敗しました。");
+                    this.errorDialog = true;
+                })
             }
         },
         toBefore(){
