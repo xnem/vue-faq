@@ -14,7 +14,7 @@
                         <v-btn id="search" block=true color="deep-orange" @click="searchFAQ">Search</v-btn>
                     </v-card-actions>
                     <v-card-actions>
-                        <v-btn block=true @click="toEdit">Add Content</v-btn>
+                        <v-btn block=true @click="toAdd">Add Content</v-btn>
                     </v-card-actions>
                 </v-form>
             </v-card-text>
@@ -28,7 +28,7 @@
                 <h5>A.{{ faq[2] }}</h5>
             </v-card-title>
             <v-card-actions>
-                <v-btn @click="toView(faq)">View</v-btn><v-btn @click="toEdit2(faq)">Edit</v-btn>
+                <v-btn @click="toView(faq)">View</v-btn><v-btn @click="toEdit(faq)">Edit</v-btn>
             </v-card-actions>
         </v-card>
 
@@ -64,10 +64,10 @@ export default {
             this.$store.state.faq = faq;
             router.push('/View');
         },
-        toEdit(){
+        toAdd(){
             router.push('/Edit');
         },
-        toEdit2(faq){
+        toEdit(faq){
             this.$store.state.faq = faq;
             this.$store.state.isEdit = true;
             router.push('/Edit');
