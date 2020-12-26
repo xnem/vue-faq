@@ -20,35 +20,26 @@
                 </v-card-text>
             </v-form>
         </v-card>
-        <!-- エラーダイアログ -->
-        <v-dialog v-model="errorDialog" persistent max-width="300">
-            <v-card>
-                <v-card-title class="headline">Error!</v-card-title>
-                <v-card-text>サーバ処理に失敗しました。</v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn text @click="errorDialog = false">Close</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+        
         <!-- 未入力ダイアログ -->
-        <v-dialog v-model="blankDialog" persistent max-width="300">
-            <v-card>
-                <v-card-title class="headline">Caution!</v-card-title>
-                <v-card-text>QuestionとAnswerは入力必須です。</v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn text @click="blankDialog = false">OK</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+        <BlankDialog v-if="blankDialog" message="QuestionとAnswerは入力必須です。" v-on:dialog-close="blankDialog=false"></BlankDialog>
+
+        <!-- サーバー処理エラーダイアログ -->
+        <ErrorDialog v-if="errorDialog" v-on:dialog-close="errorDialog=false"></ErrorDialog>        
     </div>
 </template>
 
 <script>
 import router from '../router';
 import axios from 'axios';
+import ErrorDialog from '../components/ErrorDialog.vue';
+import BlankDialog from '../components/BlankDialog.vue';
+
 export default {
+    components: {
+        ErrorDialog: ErrorDialog,
+        BlankDialog: BlankDialog
+    },
     data(){
         return{
             question: "",
@@ -64,12 +55,16 @@ export default {
     methods: {
         createFAQ(){
             if(!this.$store.state.isEdit){  // 新規作成ならこっち
-                if(this.question == "" || this.answer == ""){
+                if(this.question == "" || this.answer == "" || this.question == null || this.answer == null){
                     this.blankDialog = true;
                 }else{
                     /*
                         新規データ保存のAPIを実行
                     */
+                    console.log("question");
+                    console.log(this.question);
+                    console.log("answer");
+                    console.log(this.answer);
                     axios.post(
                         "/api/insert/",
                         {
@@ -92,7 +87,7 @@ export default {
                     });
                 }
             }else{  // 編集ならこっち
-                if(this.question == "" || this.answer == ""){
+                if(this.question == "" || this.answer == "" || this.question == null || this.answer == null){
                     this.blankDialog = true;
                 }else{
                     /*

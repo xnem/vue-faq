@@ -33,35 +33,24 @@
         </v-card>
 
         <!-- 未入力ダイアログ -->
-        <v-dialog v-model="blankDialog" persistent max-width="300">
-            <v-card>
-                <v-card-title class="headline">Caution!</v-card-title>
-                <v-card-text>検索ワードを入力してください。</v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn text @click="blankDialog = false">OK</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
-        <!-- エラーダイアログ -->
-        <v-dialog v-model="errorDialog" persistent max-width="300">
-            <v-card>
-                <v-card-title class="headline">Error!</v-card-title>
-                <v-card-text>サーバ処理に失敗しました。</v-card-text>
-                <v-card-actions>
-                    <v-spacer></v-spacer>
-                    <v-btn text @click="errorDialog = false">Close</v-btn>
-                </v-card-actions>
-            </v-card>
-        </v-dialog>
+        <BlankDialog v-if="blankDialog" message="検索ワードを入力してください。" v-on:dialog-close="blankDialog=false"></BlankDialog>
+
+        <!-- サーバー処理エラーダイアログ -->
+        <ErrorDialog v-if="errorDialog" v-on:dialog-close="errorDialog=false"></ErrorDialog>
     </div>
 </template>
 
 <script>
 import router from '../router';
 import axios from 'axios';
+import ErrorDialog from '../components/ErrorDialog.vue';
+import BlankDialog from '../components/BlankDialog.vue';
 
 export default {
+    components: {
+        ErrorDialog: ErrorDialog,
+        BlankDialog: BlankDialog
+    },
     data(){
         return{
             faqs: this.$store.state.faqs,
