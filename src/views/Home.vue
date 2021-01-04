@@ -28,7 +28,7 @@
                 <h5>A.{{ faq[2] }}</h5>
             </v-card-title>
             <v-card-actions>
-                <v-btn @click="toView(faq)">View</v-btn><v-btn @click="toEdit(faq)">Edit</v-btn>
+                <v-btn @click="toView(faq)">View</v-btn><v-btn @click="checkLock(faq)">Edit</v-btn>
             </v-card-actions>
         </v-card>
 
@@ -37,6 +37,10 @@
 
         <!-- サーバー処理エラーダイアログ -->
         <ErrorDialog v-if="errorDialog" v-on:dialog-close="errorDialog=false"></ErrorDialog>
+
+        <!-- 排他制御ダイアログ -->
+        <ExclusiveDialog v-if="exclusiveDialog" v-on:dialog-close="exclusiveDialog=false"></ExclusiveDialog>
+
     </div>
 </template>
 
@@ -45,32 +49,71 @@ import router from '../router';
 import axios from 'axios';
 import ErrorDialog from '../components/ErrorDialog.vue';
 import BlankDialog from '../components/BlankDialog.vue';
+import ExclusiveDialog from '../components/ExclusiveDialog.vue';
 
 export default {
     components: {
         ErrorDialog: ErrorDialog,
-        BlankDialog: BlankDialog
+        BlankDialog: BlankDialog,
+        ExclusiveDialog: ExclusiveDialog
     },
     data(){
         return{
             faqs: this.$store.state.faqs,
             word: "",
             blankDialog: false,
-            errorDialog: false
+            errorDialog: false,
+            exclusiveDialog: false
         }
     },
     methods:{
         toView(faq){
             this.$store.state.faq = faq;
-            router.push('/View');
+            router.push('/view');
         },
         toAdd(){
-            router.push('/Edit');
+            router.push('/edit');
+        },
+        checkLock(faq){
+            /*
+                排他制御のチェック
+            */
+            axios.get(
+                "/api/check",
+                {
+                    params: {
+                        qandaid: faq[0]
+                    }                
+                }
+            ).then( response => {
+                if(response.data.data[0][0] > 0){ // 他のユーザーが編集中の場合、排他ダイアログを表示
+                    this.exclusiveDialog = true;
+                }else{
+                    this.toEdit(faq);
+                }
+            }).catch(error => {
+                console.log(error);
+                this.errorDialog = true;
+            })
         },
         toEdit(faq){
-            this.$store.state.faq = faq;
-            this.$store.state.isEdit = true;
-            router.push('/Edit');
+            /*
+                排他ロックをして編集画面に遷移
+            */
+            axios.post(
+                "/api/lock/",
+                {
+                    qandaid: faq[0]
+                }
+            ).then( response => {
+                console.log(response);
+                this.$store.state.faq = faq;
+                this.$store.state.isEdit = true;
+                router.push('/edit');
+            }).catch( error => {
+                console.log(error);
+                this.errorDialog = true;
+            })
         },
         searchFAQ(){
             if(this.word == ""){
@@ -80,14 +123,13 @@ export default {
                     検索APIを実行
                 */
                 axios.get(
-                    "/api/search/",
+                    "/api/search",
                     {
                         params: {
                             word: this.word
                         }
                     }
                 ).then( response => {
-                    console.log("検索に成功しました。");
                     document.getElementById("search").blur();
                     this.faqs = response.data.data;
                     this.$store.state.faqs = this.faqs;

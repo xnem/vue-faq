@@ -2,7 +2,7 @@
     <div>
         <v-card width="800px" class="mx-auto mt-5">
             <v-card-actions>
-                <v-btn @click="toBefore">Back</v-btn>
+                <v-btn @click="unlock">Back</v-btn>
             </v-card-actions><br>
             <v-form>
                 <v-card-text>
@@ -43,6 +43,7 @@ export default {
     },
     data(){
         return{
+            qandaid: 0,
             question: "",
             answer: "",
             blankDialog: false,
@@ -50,6 +51,7 @@ export default {
         }
     },
     created(){
+        this.qandaid = this.$store.state.faq[0];
         this.question = this.$store.state.faq[1];
         this.answer = this.$store.state.faq[2];
     },
@@ -91,7 +93,7 @@ export default {
                 axios.post(
                     "api/update/",
                     {
-                        qandaid: this.$store.state.faq[0],
+                        qandaid: this.qandaid,
                         question: this.question,
                         answer: this.answer
                     },
@@ -110,6 +112,25 @@ export default {
                     this.errorDialog = true;
                 })
             }
+        },
+        unlock(){
+            /*
+                排他ロックの解除
+            */
+            axios.delete(
+                "/api/unlock",
+                {
+                    params: {
+                        qandaid: this.qandaid
+                    }
+                }
+            ).then( response => {
+                console.log(response);
+                this.toBefore();
+            }).catch( error => {
+                console.log( error + "排他解除に失敗しました。");
+                this.errorDialog = true;
+            })
         },
         toBefore(){
             if(!this.$store.state.fromView){
