@@ -2,7 +2,8 @@
     <div>
         <v-card width="800px" class="mx-auto mt-5">
             <v-card-actions>
-                <v-btn @click="unlock">Back</v-btn>
+                <v-btn v-if="!this.$store.state.fromView && !this.$store.state.isEdit" @click="toHome">Back</v-btn>
+                <v-btn v-else @click="unlock">Back</v-btn>
             </v-card-actions><br>
             <v-form>
                 <v-card-text>
@@ -126,25 +127,28 @@ export default {
                 }
             ).then( response => {
                 console.log(response);
-                this.toBefore();
+                if(this.$store.state.fromView){
+                    this.toView();
+                }else{
+                    this.toHome();
+                }
             }).catch( error => {
                 console.log( error + "排他解除に失敗しました。");
                 this.errorDialog = true;
             })
         },
-        toBefore(){
-            if(!this.$store.state.fromView){
-                this.$store.state.isEdit = false;
-                this.$store.state.faq = [];
-                if(this.$store.state.faqs.length == 0){
-                    this.$store.state.displayNumberOfHit = false;
-                }
-                router.push('/');
-            }else{
-                this.$store.state.isEdit = false;
-                this.$store.state.fromView = false;
-                router.push('/view');
+        toView(){
+            this.$store.state.isEdit = false;
+            this.$store.state.fromView = false;
+            router.push('/view');
+        },
+        toHome(){
+            this.$store.state.isEdit = false;
+            this.$store.state.faq = [];
+            if(this.$store.state.faqs.length == 0){
+                this.$store.state.displayNumberOfHit = false;
             }
+            router.push('/');
         }
     }
 }
